@@ -5,6 +5,8 @@ from sys import platform
 import sys
 from bs4 import BeautifulSoup as bs
 import requests as rq
+import netifaces as ni
+
 
 if platform == "linux" or platform == "linux2":
     os.system("clear")
@@ -22,6 +24,7 @@ def help():
     print("\n")
     print("     ",colored(0, 255, 0, commands[1]), "show the alive devices on your local network")
     print("     ",colored(0, 255, 0, commands[4]), "check open ports on the alive devices of your local network")
+    print("     ",colored(0, 255, 0, commands[7]), "chack for all alive connexion on your local network")
     print("     ",colored(0, 255, 0, commands[5]), "attack a device with 'man in the middle' attack")
     print("     ",colored(0, 255, 0, commands[6]), "looks for a username in various websites")
 
@@ -34,10 +37,23 @@ def scan():
     for i in scan['scan']:
         brand = list(scan['scan'][i]['vendor'].values())
         name = scan['scan'][i]['hostnames'][0]['name']
-        if len(brand) == 1:
+        if len(brand) > 0:
             print(colored(0, 255, 0, i), "made by", colored(0, 255, 150, brand[0]), "and called", colored(0, 255, 150, name), "is up")
         else:
             print(colored(0, 255, 0, i), "made by", colored(0, 255, 150, "Unknown"), "and called", colored(0, 255, 150, name), "is up")
+
+def scan_all():
+    nm = nmap.PortScanner()
+    myip = local_ip+"/24"
+    scan_all = nm.scan(hosts= myip , arguments='-sn -Pn')
+    for i in scan_all['scan']:
+        brand = list(scan_all['scan'][i]['vendor'].values())
+        name = scan_all['scan'][i]['hostnames'][0]['name']
+        if len(brand) == 1 and name != str():
+            print(colored(0, 255, 0, i), "made by", colored(0, 255, 150, brand[0]), "and called", colored(0, 255, 150, name), "is up")
+        elif len(brand) == 0 and name != str():
+            print(colored(0, 255, 0, i), "made by", colored(0, 255, 150, "Unknown"), "and called", colored(0, 255, 150, name), "is up")
+
 
 def scan_firewall():
     nm = nmap.PortScanner()
@@ -60,10 +76,10 @@ def mitm():
     if platform == "linux" or platform == "linux2":
         for i in (local_ip, -1):
             if i != ".":
-                w = w + i
+                w = w + str(i)
             else:
                 for c in (w, -i):
-                    e = e + c
+                    e = e + str(c)
         root = local_ip - e
         v = str(input("what device do you want to attacks ?"))
         victime = root + v
@@ -111,6 +127,8 @@ def main():
                 scan()
             if  cmd == "scan firewall":
                 scan_firewall()
+            if cmd == "scan all":
+                scan_all()
             if cmd == "mitm":
                 mitm()
             if cmd == "search":
@@ -120,6 +138,7 @@ def main():
             print(colored(255, 0, 0, "      '{}'".format(cmd)), colored(50, 50, 150, " is not a command, use help to see all the commands."))
         print("\n")
 
+print("\n")
 print("@%(,.                   .,#                                        ")
 print("                *@@@@@@@@@*@                                       ")
 print("        @@@,                @*             &                       ")
@@ -144,9 +163,15 @@ print("\n")
 print(colored(255, 0, 0, "      Hello"), colored(0, 255, 0, "{}".format(sc.gethostname())), colored(255, 0, 0, "I am nobody."))
 print("\n")
 
-local_ip = sc.gethostbyname(sc.gethostname())
+#local_ip = sc.gethostbyname(sc.gethostname())
+#print(local_ip)
+
+ni.ifaddresses('eth0')
+local_ip = str(ni.ifaddresses('eth0')[ni.AF_INET][0]['addr'])
+print(local_ip)
+
 url = ["https://www.twitter.com/", "https://www.instagram.com/"]
 
-commands = ["exit", "scan", "help", "clear", "scan firewall", "mitm", "search"]
+commands = ["exit", "scan", "help", "clear", "scan firewall", "mitm", "search", "scan all"]
 
 main()
