@@ -58,17 +58,18 @@ def scan_all():
 def scan_firewall():
     nm = nmap.PortScanner()
     myip = local_ip+"/24"
-    scan = nm.scan(hosts= myip , arguments='-sn')
+    scan = nm.scan(hosts= myip , arguments='-sn -Pn')
     for i in scan['scan']:
-        print("     ", colored(255, 0, 0, i))
-        print("")
-        S = nm.scan(i, '20-450')
-        try:
-            for p in S['scan'][i]['tcp']:
-                print("     port", colored(0, 255, 0, str(p)), "is open")
-        except KeyError:
-            print(colored(255, 0, 0, "  None. "))
-        print("")
+        if scan['scan'][i]['hostnames'][0]['name'] != str():
+            print("     ", colored(255, 0, 0, i))
+            print("")
+            S = nm.scan(i, '20-450')
+            try:
+                for p in S['scan'][i]['tcp']:
+                    print("     port", colored(0, 255, 0, str(p)), "is open")
+            except KeyError:
+                print(colored(255, 0, 0, "  None. "))
+            print("")
 
 def mitm():
     w = ""
