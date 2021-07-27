@@ -172,6 +172,9 @@ try:
 except ValueError:
     ni.ifaddresses('wlan0')
     local_ip = str(ni.ifaddresses('wlan0')[ni.AF_INET][0]['addr'])
+except ValueError:
+    ni.ifaddresses('wlan1')
+    local_ip = str(ni.ifaddresses('wlan1')[ni.AF_INET][0]['addr'])
 
 
 url = ["https://www.twitter.com/", "https://www.instagram.com/"]
