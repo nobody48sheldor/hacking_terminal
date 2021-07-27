@@ -166,9 +166,13 @@ print("\n")
 #local_ip = sc.gethostbyname(sc.gethostname())
 #print(local_ip)
 
-ni.ifaddresses('eth0')
-local_ip = str(ni.ifaddresses('eth0')[ni.AF_INET][0]['addr'])
-print(local_ip)
+try:
+    ni.ifaddresses('eth0')
+    local_ip = str(ni.ifaddresses('eth0')[ni.AF_INET][0]['addr'])
+except ValueError:
+    ni.ifaddresses('wlan0')
+    local_ip = str(ni.ifaddresses('wlan0')[ni.AF_INET][0]['addr'])
+
 
 url = ["https://www.twitter.com/", "https://www.instagram.com/"]
 
