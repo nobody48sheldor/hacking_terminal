@@ -289,7 +289,6 @@ def exploit(ip):
     print(colored(255, 0, 0, "http"), "will not be scanned")
     for i in scan['scan'][ip]['tcp']:
         V.append((scan['scan'][ip]['tcp'][i]['name'], scan['scan'][ip]['tcp'][i]['version']))
-    print(V)
     for w in V:
         print("")
         if w[0] == 'http':
