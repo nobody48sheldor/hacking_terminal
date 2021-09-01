@@ -137,10 +137,14 @@ def scan_all():
     nm = nmap.PortScanner()
     myip = local_ip+"/24"
     scan_all = nm.scan(hosts= myip , arguments='-sn -Pn')
+    print(scan_all['scan'])
     for i in scan_all['scan']:
-        brand = list(scan_all['scan'][i]['vendor'].values())
+        brand = list(scan_all['scan'][i]['vendor'])
         name = scan_all['scan'][i]['hostnames'][0]['name']
-        if len(brand) == 1 and (name != str() or type(name) == type([])):
+        print(i)
+        print(name)
+        print(brand)
+        if len(brand) == 1 and name != '':
             print(colored(0, 255, 0, i), "made by", colored(0, 255, 150, brand[0]), "and called", colored(0, 255, 150, name), "is up")
         elif len(brand) == 0 and (name != str() or type(name) == type([])):
             print(colored(0, 255, 0, i), "made by", colored(0, 255, 150, "Unknown"), "and called", colored(0, 255, 150, name), "is up")
@@ -256,9 +260,16 @@ def psw_crack():
 def vuln(ip):
     nm = nmap.PortScanner()
     scan = nm.scan(hosts= ip , arguments='--script vuln')
-    print(scan)
     for i in scan['scan'][ip]['tcp']:
-        print(scan['scan'][ip]['tcp'][i])
+        if scan['scan'][ip]['tcp'][i]['script']['clamav-exec'] == 'ERROR: Script execution failed (use -d to debug)':
+            print("the port", colored(255, 0, 0, i), "is", colored(0, 255, 0, scan['scan'][ip]['tcp'][i]['state']), "and the service on it is", colored(0, 0, 255, scan['scan'][ip]['tcp'][i]['name']), "and is", colored(255, 0, 0,"not vulnerable"))
+        else:
+            print("the port", colored(255, 0, 0, i), "is", colored(0, 255, 0, scan['scan'][ip]['tcp'][i]['state']), "and the service on it is", colored(0, 0, 255, scan['scan'][ip]['tcp'][i]['name']), "and is", colored(0, 255, 0, "vulnerable"), "to", colored(0, 0, 255, scan['scan'][ip]['tcp'][i]['script']['clamav-exec']))
+    print("")
+    print("hosts scripts for", colored(0, 255, 0, "vulnerabilities"), "results :")
+    for i in scan['scan'][ip]['hostscript']:
+        print(colored(255, 0, 0, i['id']), ":", colored(0, 255, 0, i['output']))
+        print("")
 
 def vers(ip):
     nm = nmap.PortScanner()
@@ -284,15 +295,17 @@ def ports(ip):
 def exploit(ip):
     V = []
     S = ['']
+    h = 0
     nm = nmap.PortScanner()
     scan = nm.scan(hosts = ip, arguments = "-sV")
+    print("")
     print(colored(255, 0, 0, "http"), "will not be scanned")
     for i in scan['scan'][ip]['tcp']:
-        V.append((scan['scan'][ip]['tcp'][i]['name'], scan['scan'][ip]['tcp'][i]['version']))
+        V.append((scan['scan'][ip]['tcp'][i]['name'], scan['scan'][ip]['tcp'][i]['version'], scan['scan'][ip]['tcp'][i]['product']))
     for w in V:
         print("")
         if w[0] == 'http':
-            pass
+            h = h + 1
         else:
             scanned = False
             for u in S:
@@ -302,6 +315,8 @@ def exploit(ip):
                 print("looking for exploit of", colored(0, 255, 0, "{} {}".format(w[0], w[1])))
                 print("")
                 os.system("searchsploit {}{}".format(w[0], w[1]))
+                if w[2] != "":
+                    os.system("searchsploit {}{}".format(w[2], w[1]))
                 S.append(w[0])
 
 
