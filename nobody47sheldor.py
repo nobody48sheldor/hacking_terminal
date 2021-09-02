@@ -50,7 +50,7 @@ def help():
     print("   -/    ", colored(0, 255, 0, commands[3]), "clear the screen")
     print("   -/    ", colored(0, 255, 0, commands[2]), "prompt the help menu")
     print("   -/    ", colored(0, 255, 0, commands[8]), "show iformation obout your ip configuration depending on your os")
-    print("   -/    ", colored(0, 255, 0, commands[9]), "let's you configure your iface (wifi or ethernet, here called wlan or eth)")
+    print("   -/    ", colored(0, 255, 0, commands[9]), "lets you configure your iface (wifi or ethernet)")
     print("   -/    ", colored(0, 255, 0, "{} <cmd>".format(commands[14])), "run a 'terminal' command")
     print("\n")
     print("                 ", "on", colored(0, 0, 255, "LAN"))
