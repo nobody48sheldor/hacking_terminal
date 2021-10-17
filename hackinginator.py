@@ -51,6 +51,7 @@ def help():
     print("   -/    ", colored(0, 255, 0, commands[2]), "prompt the help menu")
     print("   -/    ", colored(0, 255, 0, commands[8]), "show iformation obout your ip configuration depending on your os")
     print("   -/    ", colored(0, 255, 0, commands[9]), "lets you configure your iface (wifi or ethernet)")
+    print("   -/    ", colored(0, 255, 0, commands[17]), "help you connect to a wifi")
     print("   -/    ", colored(0, 255, 0, "{} <cmd>".format(commands[14])), "run a 'terminal' command")
     print("\n")
     print("                 ", "on", colored(0, 0, 255, "LAN"))
@@ -318,6 +319,11 @@ def exploit(ip):
                 if w[2] != "":
                     os.system("searchsploit {}{}".format(w[2], w[1]))
                 S.append(w[0])
+def connect(iface):
+    os.system("sudo iwlist {} scanning | grep ESSID".format(iface))
+    ESSID = str(input("choose the {} : ".format(colored(0, 255, 0, "wifi"))))
+    passw = str(input("enter the {} : ".format(colored(0, 255, 0, "password"))))
+    os.system("nmcli d wifi connect '{}' password {} ifname {}".format(ESSID, passw, iface))
 
 
 def main():
@@ -376,6 +382,9 @@ def main():
             if cmd == "scan exploit vers":
                 ip_target = str(input(" {} of the {} : ".format(colored(255, 0, 0, "ip"), colored(0, 255, 0, "target"))))
                 exploit(ip_target)
+            if cmd == "connect iface":
+                iface = str(input("choose the {} : ".format(colored(0, 255, 0, "iface"))))
+                connect(iface)
 
 
         else:
@@ -418,7 +427,7 @@ print("\n")
 
 url = ["https://www.twitter.com/", "https://www.instagram.com/"]
 
-commands = ["exit", "scan local", "help", "clear", "scan local firewall", "mitm", "search", "scan local all", "ip", "config", "password crack", "reverse shell", "scan vuln", "scan vers", "sys", "scan port", "scan exploit vers"]
+commands = ["exit", "scan local", "help", "clear", "scan local firewall", "mitm", "search", "scan local all", "ip", "config", "password crack", "reverse shell", "scan vuln", "scan vers", "sys", "scan port", "scan exploit vers", "connect iface"]
 
 sourceMAC  = str(get_mac())
 
