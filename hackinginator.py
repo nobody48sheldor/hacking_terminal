@@ -323,7 +323,7 @@ def connect(iface):
     os.system("sudo iwlist {} scanning | grep ESSID".format(iface))
     ESSID = str(input("choose the {} : ".format(colored(0, 255, 0, "wifi"))))
     passw = str(input("enter the {} : ".format(colored(0, 255, 0, "password"))))
-    os.system("nmcli d wifi connect '{}' password {} ifname {}".format(ESSID, passw, iface))
+    os.system("sudo nmcli d wifi connect '{}' password {} ifname {}".format(ESSID, passw, iface))
 
 
 def main():
